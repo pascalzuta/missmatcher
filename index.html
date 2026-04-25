@@ -480,9 +480,11 @@ function renderSwatches(container, colors) {
     return;
   }
   container.innerHTML = '';
+  const usedNames = new Set();
   for (const c of colors) {
     const hex = rgbToHex(c.r, c.g, c.b);
-    const name = nameColor(c.r, c.g, c.b);
+    const name = nameColor(c.r, c.g, c.b, usedNames);
+    usedNames.add(name);
     const div = document.createElement('div');
     div.className = 'swatch';
     div.style.background = hex;
@@ -491,107 +493,159 @@ function renderSwatches(container, colors) {
   }
 }
 
-// Friendly color name lookup. Each entry: [name, r, g, b].
-// Find the closest one in HSL-aware distance and return its name.
+// Whimsical color names — every name unique, like a fashion brand catalog.
+// Each entry: [name, r, g, b].
 const COLOR_NAMES = [
-  ['Snow White', 250, 250, 250],
-  ['Cloud', 230, 232, 236],
-  ['Pearl', 240, 234, 228],
-  ['Cream', 252, 247, 224],
-  ['Vanilla', 244, 233, 200],
-  ['Light Gray', 200, 200, 205],
-  ['Stone Gray', 160, 160, 165],
-  ['Slate', 110, 115, 130],
-  ['Charcoal', 60, 62, 70],
-  ['Midnight', 25, 25, 40],
-  ['Jet Black', 15, 15, 18],
+  // Whites / creams
+  ['Fresh Snow', 250, 250, 250],
+  ['Whipped Cream', 248, 244, 236],
+  ['Moonbeam', 240, 234, 228],
+  ['Vanilla Frosting', 252, 247, 224],
+  ['Marshmallow', 244, 238, 220],
+  ['Coconut Milk', 246, 240, 230],
+  ['Pearl Dust', 235, 232, 225],
 
-  ['Bubblegum Pink', 255, 145, 200],
+  // Grays / neutrals
+  ['Misty Cloud', 220, 222, 228],
+  ['Silver Whisper', 200, 200, 210],
+  ['Storm Cloud', 160, 162, 170],
+  ['Pebble', 130, 132, 140],
+  ['Slate Sky', 105, 110, 125],
+  ['Wolf Gray', 90, 92, 100],
+  ['Charcoal Smoke', 60, 62, 72],
+  ['Midnight Mist', 35, 38, 50],
+  ['Inkwell', 18, 18, 24],
+
+  // Pinks (h ~ 290–360 with brightness)
+  ['Bubblegum Pop', 255, 145, 200],
   ['Cotton Candy', 255, 188, 217],
-  ['Hot Pink', 255, 80, 160],
-  ['Magenta', 220, 60, 160],
-  ['Rose', 240, 110, 140],
-  ['Blush', 250, 200, 200],
-  ['Coral', 255, 130, 110],
-  ['Salmon', 250, 150, 130],
-  ['Peach', 255, 200, 165],
+  ['Flamingo', 255, 110, 175],
+  ['Hot Pink Disco', 255, 80, 160],
+  ['Watermelon', 255, 100, 145],
+  ['Strawberry Milk', 250, 175, 195],
+  ['Dragonfruit', 230, 80, 170],
+  ['Magenta Magic', 215, 55, 165],
+  ['Sweet Rose', 240, 130, 165],
+  ['Ballet Slipper', 250, 200, 215],
+  ['Pixie Pink', 255, 168, 215],
+  ['Princess Pink', 255, 215, 230],
+  ['Fairy Floss', 255, 195, 220],
 
-  ['Cherry Red', 220, 30, 50],
-  ['Strawberry', 240, 60, 70],
-  ['Tomato Red', 230, 75, 60],
-  ['Crimson', 180, 25, 50],
-  ['Brick Red', 160, 50, 40],
+  // Reds (h < 12 or >= 345)
+  ['Cherry Bomb', 220, 30, 50],
+  ['Strawberry Jam', 240, 60, 70],
+  ['Tomato Soup', 230, 75, 60],
+  ['Crimson Velvet', 180, 25, 50],
+  ['Brick Cottage', 160, 60, 50],
+  ['Lipstick Red', 215, 35, 60],
+  ['Coral Reef', 255, 125, 105],
+  ['Salmon Sushi', 250, 145, 125],
+  ['Ladybug', 200, 30, 40],
+  ['Apple Candy', 230, 45, 55],
 
-  ['Pumpkin Orange', 240, 135, 50],
-  ['Tangerine', 255, 155, 70],
-  ['Apricot', 250, 180, 120],
-  ['Mustard', 220, 170, 50],
+  // Oranges
+  ['Pumpkin Spice', 240, 135, 50],
+  ['Tangerine Dream', 255, 155, 70],
+  ['Apricot Glow', 250, 180, 120],
+  ['Sunset Orange', 255, 120, 60],
+  ['Carrot Stick', 240, 145, 60],
+  ['Peach Smoothie', 255, 195, 160],
+  ['Mango Tango', 255, 165, 80],
+  ['Marmalade', 230, 130, 50],
 
-  ['Sunshine Yellow', 255, 225, 70],
-  ['Lemon', 250, 240, 100],
-  ['Buttercup', 250, 220, 130],
-  ['Gold', 220, 180, 60],
+  // Yellows
+  ['Sunshine Burst', 255, 225, 70],
+  ['Lemon Drop', 250, 240, 100],
+  ['Buttercup Bloom', 250, 220, 130],
+  ['Pirate Gold', 220, 180, 60],
+  ['Banana Cream', 250, 235, 165],
+  ['Honey Drizzle', 235, 200, 90],
+  ['Pineapple Soda', 248, 230, 110],
+  ['Mustard Jar', 215, 175, 55],
 
-  ['Lime Green', 180, 230, 80],
-  ['Mint', 170, 230, 200],
-  ['Apple Green', 130, 200, 70],
-  ['Grass Green', 90, 180, 70],
-  ['Forest Green', 35, 110, 60],
-  ['Pine Green', 25, 80, 55],
-  ['Sage', 160, 180, 145],
-  ['Olive', 130, 140, 70],
+  // Greens
+  ['Lime Sherbet', 180, 230, 80],
+  ['Mint Chip', 170, 230, 200],
+  ['Apple Slice', 130, 200, 70],
+  ['Meadow Grass', 90, 180, 70],
+  ['Enchanted Forest', 35, 110, 60],
+  ['Pine Needle', 25, 80, 55],
+  ['Sage Garden', 160, 180, 145],
+  ['Olive Branch', 130, 140, 70],
+  ['Cactus Bloom', 110, 195, 130],
+  ['Avocado Toast', 145, 165, 85],
+  ['Spring Shoot', 175, 215, 110],
+  ['Emerald Isle', 30, 145, 95],
 
-  ['Teal', 40, 160, 165],
-  ['Turquoise', 70, 200, 210],
-  ['Aqua', 130, 220, 230],
-  ['Seafoam', 170, 230, 215],
+  // Teals / cyans
+  ['Mermaid Tail', 40, 160, 165],
+  ['Turquoise Lagoon', 70, 200, 210],
+  ['Aqua Splash', 130, 220, 230],
+  ['Seafoam Wave', 170, 230, 215],
+  ['Tropical Pool', 90, 195, 200],
+  ['Glacier', 180, 230, 235],
 
-  ['Sky Blue', 130, 195, 240],
-  ['Baby Blue', 180, 215, 240],
-  ['Powder Blue', 200, 220, 235],
-  ['Cornflower Blue', 100, 140, 230],
-  ['Ocean Blue', 30, 110, 200],
-  ['Royal Blue', 40, 70, 200],
-  ['Navy Blue', 25, 35, 90],
-  ['Denim', 80, 110, 160],
+  // Blues
+  ['Sky High', 130, 195, 240],
+  ['Baby Whale', 180, 215, 240],
+  ['Powder Snow', 200, 220, 235],
+  ['Cornflower Field', 100, 140, 230],
+  ['Ocean Deep', 30, 110, 200],
+  ['Royal Sapphire', 40, 70, 200],
+  ['Midnight Navy', 25, 35, 90],
+  ['Denim Jeans', 80, 110, 160],
+  ['Bluebird', 70, 145, 220],
+  ['Periwinkle Petal', 165, 180, 230],
+  ['Stormy Sea', 65, 105, 145],
 
-  ['Lavender', 200, 180, 240],
-  ['Lilac', 215, 195, 235],
-  ['Periwinkle', 175, 175, 240],
-  ['Purple', 145, 80, 220],
-  ['Violet', 130, 70, 200],
-  ['Plum', 110, 60, 130],
-  ['Grape', 95, 55, 145],
-  ['Eggplant', 70, 40, 90],
+  // Purples / violets
+  ['Lavender Field', 200, 180, 240],
+  ['Lilac Bloom', 215, 195, 235],
+  ['Iris Petal', 175, 175, 240],
+  ['Royal Purple', 145, 80, 220],
+  ['Violet Crush', 130, 70, 200],
+  ['Plum Jam', 110, 60, 130],
+  ['Grape Soda', 95, 55, 145],
+  ['Eggplant Velvet', 70, 40, 90],
+  ['Unicorn Mane', 200, 150, 240],
+  ['Twilight', 90, 75, 160],
+  ['Fairy Dust', 215, 170, 245],
 
-  ['Chocolate Brown', 90, 55, 35],
-  ['Caramel', 175, 115, 60],
-  ['Tan', 200, 170, 130],
-  ['Beige', 220, 200, 170],
-  ['Sand', 230, 210, 175],
-  ['Khaki', 195, 175, 130],
-  ['Mocha', 130, 95, 70],
+  // Browns / tans / beiges
+  ['Chocolate Truffle', 90, 55, 35],
+  ['Caramel Drizzle', 175, 115, 60],
+  ['Toasted Almond', 200, 170, 130],
+  ['Sandcastle', 220, 200, 170],
+  ['Beach Sand', 230, 210, 175],
+  ['Khaki Safari', 195, 175, 130],
+  ['Mocha Latte', 130, 95, 70],
+  ['Cinnamon Roll', 165, 110, 75],
+  ['Hot Cocoa', 105, 70, 50],
+  ['Latte Foam', 215, 195, 165],
+  ['Gingerbread', 145, 100, 60],
 ];
 
 // Two-step naming: first pick the COLOR FAMILY (pink, orange, blue...) the way humans do,
-// then within that family find the closest specific name by lightness + saturation.
-// This stops "muted pink" from being called "Stone Gray" just because both have similar HSL distance.
-function nameColor(r, g, b) {
+// then within that family find the closest unused name. `usedNames` makes every swatch
+// in a result set show a different name even when two suggestions are similar.
+function nameColor(r, g, b, usedNames) {
   const { h, s, l } = rgbToHsl(r, g, b);
   const family = colorFamily(h, s, l);
-  // Filter the name table down to just this family
   const candidates = COLOR_NAMES.filter(([name, cr, cg, cb]) => {
     const ch = rgbToHsl(cr, cg, cb);
     return colorFamily(ch.h, ch.s, ch.l) === family;
   });
-  // Within the family, find the closest match by RGB euclidean distance
-  let best = null, bestDist = Infinity;
-  for (const [name, cr, cg, cb] of candidates) {
+  // Sort by closeness (RGB euclidean), then walk down looking for an unused name
+  const ranked = candidates.map(([name, cr, cg, cb]) => {
     const dr = r - cr, dg = g - cg, db = b - cb;
-    const dist = dr*dr + dg*dg + db*db;
-    if (dist < bestDist) { bestDist = dist; best = name; }
+    return { name, dist: dr*dr + dg*dg + db*db };
+  }).sort((a, b) => a.dist - b.dist);
+  if (usedNames) {
+    for (const c of ranked) {
+      if (!usedNames.has(c.name)) return c.name;
+    }
   }
-  return best || 'Mystery Color';
+  return ranked[0]?.name || 'Mystery Color';
 }
 
 // Decide which color family a color belongs to. This matches how humans group colors.
