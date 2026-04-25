@@ -163,8 +163,12 @@
 
   .swatches {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
     gap: 12px;
+  }
+
+  .swatches.single {
+    grid-template-columns: 1fr;
   }
 
   .swatch {
@@ -174,22 +178,33 @@
     position: relative;
     overflow: hidden;
     border: 3px solid rgba(255,255,255,0.8);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .swatches.single .swatch {
+    aspect-ratio: 2.4 / 1;
   }
 
   .swatch .label {
-    position: absolute;
-    bottom: 6px;
-    left: 6px;
-    right: 6px;
-    background: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.92);
     backdrop-filter: blur(6px);
-    padding: 3px 6px;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
     text-align: center;
     color: var(--ink);
-    font-family: ui-monospace, "SF Mono", monospace;
+    line-height: 1.2;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    max-width: 100%;
+  }
+
+  .swatches.single .swatch .label {
+    font-size: 16px;
+    padding: 8px 14px;
   }
 
   .empty {
@@ -274,8 +289,8 @@
 </div>
 
 <div class="card" id="resultsCard">
-  <h2 class="section-title">🎨 Colors in your outfit</h2>
-  <div class="swatches" id="dominantSwatches">
+  <h2 class="section-title">🎨 Your outfit color</h2>
+  <div class="swatches single" id="dominantSwatches">
     <div class="empty"><span class="big-emoji">👗</span>Upload a photo to see!</div>
   </div>
 </div>
@@ -366,7 +381,8 @@ function prepareImage(img) {
 // Analyze around a normalized (0..1) focus point.
 function analyzeAt(fx, fy) {
   if (!imageData) return;
-  const dominant = extractDominantColors(imageData, imageCanvas.width, imageCanvas.height, fx, fy, 5);
+  // Pick just ONE main color — the dominant color of the spot you tapped.
+  const dominant = extractDominantColors(imageData, imageCanvas.width, imageCanvas.height, fx, fy, 1);
   renderSwatches(dominantSwatches, dominant);
   const suggestions = suggestColors(dominant);
   renderSwatches(suggestSwatches, suggestions);
@@ -449,12 +465,115 @@ function renderSwatches(container, colors) {
   container.innerHTML = '';
   for (const c of colors) {
     const hex = rgbToHex(c.r, c.g, c.b);
+    const name = nameColor(c.r, c.g, c.b);
     const div = document.createElement('div');
     div.className = 'swatch';
     div.style.background = hex;
-    div.innerHTML = `<div class="label">${hex.toUpperCase()}</div>`;
+    div.innerHTML = `<div class="label">${name}</div>`;
     container.appendChild(div);
   }
+}
+
+// Friendly color name lookup. Each entry: [name, r, g, b].
+// Find the closest one in HSL-aware distance and return its name.
+const COLOR_NAMES = [
+  ['Snow White', 250, 250, 250],
+  ['Cloud', 230, 232, 236],
+  ['Pearl', 240, 234, 228],
+  ['Cream', 252, 247, 224],
+  ['Vanilla', 244, 233, 200],
+  ['Light Gray', 200, 200, 205],
+  ['Stone Gray', 160, 160, 165],
+  ['Slate', 110, 115, 130],
+  ['Charcoal', 60, 62, 70],
+  ['Midnight', 25, 25, 40],
+  ['Jet Black', 15, 15, 18],
+
+  ['Bubblegum Pink', 255, 145, 200],
+  ['Cotton Candy', 255, 188, 217],
+  ['Hot Pink', 255, 80, 160],
+  ['Magenta', 220, 60, 160],
+  ['Rose', 240, 110, 140],
+  ['Blush', 250, 200, 200],
+  ['Coral', 255, 130, 110],
+  ['Salmon', 250, 150, 130],
+  ['Peach', 255, 200, 165],
+
+  ['Cherry Red', 220, 30, 50],
+  ['Strawberry', 240, 60, 70],
+  ['Tomato Red', 230, 75, 60],
+  ['Crimson', 180, 25, 50],
+  ['Brick Red', 160, 50, 40],
+
+  ['Pumpkin Orange', 240, 135, 50],
+  ['Tangerine', 255, 155, 70],
+  ['Apricot', 250, 180, 120],
+  ['Mustard', 220, 170, 50],
+
+  ['Sunshine Yellow', 255, 225, 70],
+  ['Lemon', 250, 240, 100],
+  ['Buttercup', 250, 220, 130],
+  ['Gold', 220, 180, 60],
+
+  ['Lime Green', 180, 230, 80],
+  ['Mint', 170, 230, 200],
+  ['Apple Green', 130, 200, 70],
+  ['Grass Green', 90, 180, 70],
+  ['Forest Green', 35, 110, 60],
+  ['Pine Green', 25, 80, 55],
+  ['Sage', 160, 180, 145],
+  ['Olive', 130, 140, 70],
+
+  ['Teal', 40, 160, 165],
+  ['Turquoise', 70, 200, 210],
+  ['Aqua', 130, 220, 230],
+  ['Seafoam', 170, 230, 215],
+
+  ['Sky Blue', 130, 195, 240],
+  ['Baby Blue', 180, 215, 240],
+  ['Powder Blue', 200, 220, 235],
+  ['Cornflower Blue', 100, 140, 230],
+  ['Ocean Blue', 30, 110, 200],
+  ['Royal Blue', 40, 70, 200],
+  ['Navy Blue', 25, 35, 90],
+  ['Denim', 80, 110, 160],
+
+  ['Lavender', 200, 180, 240],
+  ['Lilac', 215, 195, 235],
+  ['Periwinkle', 175, 175, 240],
+  ['Purple', 145, 80, 220],
+  ['Violet', 130, 70, 200],
+  ['Plum', 110, 60, 130],
+  ['Grape', 95, 55, 145],
+  ['Eggplant', 70, 40, 90],
+
+  ['Chocolate Brown', 90, 55, 35],
+  ['Caramel', 175, 115, 60],
+  ['Tan', 200, 170, 130],
+  ['Beige', 220, 200, 170],
+  ['Sand', 230, 210, 175],
+  ['Khaki', 195, 175, 130],
+  ['Mocha', 130, 95, 70],
+];
+
+function nameColor(r, g, b) {
+  const targetHsl = rgbToHsl(r, g, b);
+  let best = null;
+  let bestDist = Infinity;
+  for (const [name, cr, cg, cb] of COLOR_NAMES) {
+    const candHsl = rgbToHsl(cr, cg, cb);
+    // Hue difference (circular), with extra weight when both colors are saturated.
+    let dh = Math.abs(targetHsl.h - candHsl.h);
+    if (dh > 180) dh = 360 - dh;
+    const ds = Math.abs(targetHsl.s - candHsl.s);
+    const dl = Math.abs(targetHsl.l - candHsl.l);
+    // For very desaturated colors (grays/whites), hue doesn't matter much.
+    const sat = (targetHsl.s + candHsl.s) / 2;
+    const hueWeight = sat * 1.5;
+    const dist = (dh / 180) * (dh / 180) * hueWeight + ds * ds * 1.5 + dl * dl * 2;
+    if (dist < bestDist) { bestDist = dist; best = name; }
+  }
+  return best;
 }
 
 function rgbToHex(r,g,b) {
