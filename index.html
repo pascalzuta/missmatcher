@@ -322,6 +322,235 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
 
+  /* ===== Category picker ===== */
+  .cat-picker {
+    margin-top: 14px;
+    display: none;
+  }
+  .cat-picker.show { display: block; }
+  .cat-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--purple);
+    text-align: center;
+    margin: 0 0 10px;
+  }
+  .cat-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .cat-btn {
+    padding: 14px 8px;
+    border: 2px solid var(--purple-soft);
+    border-radius: 16px;
+    background: white;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .cat-btn:active { transform: scale(0.95); }
+  .cat-btn .cat-emoji { font-size: 28px; }
+  .cat-btn:hover { border-color: var(--purple); background: var(--purple-soft); }
+
+  /* ===== Closet thumbnails ===== */
+  .closet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
+  }
+  .closet-item {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border: 3px solid rgba(255,255,255,0.9);
+    aspect-ratio: 1;
+    cursor: pointer;
+    background: var(--purple-soft);
+  }
+  .closet-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .closet-item .cat-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 13px;
+  }
+  .closet-item .item-label {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(6px);
+    padding: 4px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .closet-item .remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    font-size: 16px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* ===== Outfits carousel (the spinning part!) ===== */
+  .outfit-stage {
+    perspective: 1200px;
+    margin-top: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+  }
+  .outfit-frame {
+    background: linear-gradient(135deg, var(--pink-soft), var(--purple-soft), var(--blue-soft));
+    border-radius: 22px;
+    padding: 18px;
+    min-height: 360px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(.4,.1,.3,1.2), filter 0.4s, opacity 0.3s;
+  }
+  .outfit-frame.spinning {
+    transform: rotateY(360deg) scale(0.85);
+    filter: blur(2px) saturate(1.5);
+  }
+  .outfit-frame.empty-state {
+    background: rgba(255,255,255,0.5);
+    text-align: center;
+    color: #8a6fb3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .outfit-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .outfit-pair.dress { grid-template-columns: 1fr; max-width: 220px; margin: 0 auto; }
+  .outfit-piece {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    aspect-ratio: 3/4;
+    position: relative;
+  }
+  .outfit-piece img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .outfit-piece .piece-label {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.93);
+    backdrop-filter: blur(6px);
+    padding: 5px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .outfit-meta {
+    margin-top: 14px;
+    text-align: center;
+  }
+  .outfit-score {
+    display: inline-block;
+    background: white;
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--purple);
+    box-shadow: 0 2px 8px rgba(168,85,247,0.2);
+  }
+
+  .outfit-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    gap: 10px;
+  }
+  .outfit-nav {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    box-shadow: 0 4px 12px rgba(168,85,247,0.25);
+    color: var(--purple);
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s;
+  }
+  .outfit-nav:active { transform: scale(0.9); }
+  .outfit-nav:disabled { opacity: 0.35; cursor: default; }
+
+  .outfit-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .outfit-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(168,85,247,0.3);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .outfit-dot.active {
+    background: var(--purple);
+    transform: scale(1.4);
+  }
+  .outfit-counter {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--purple);
+  }
+
   .heart {
     display: inline-block;
     animation: beat 1.4s ease-in-out infinite;
@@ -361,9 +590,20 @@
   <div class="swatches single" id="dominantSwatches">
     <div class="empty"><span class="big-emoji">👗</span>Upload a photo to see!</div>
   </div>
-  <button class="add-closet-btn" id="addClosetBtn" type="button" style="display:none;">
-    <span>➕</span> <span>Save to my closet</span>
-  </button>
+  <div class="cat-picker" id="catPicker">
+    <p class="cat-title">Save this to my closet as a…</p>
+    <div class="cat-buttons">
+      <button class="cat-btn" type="button" data-cat="top">
+        <span class="cat-emoji">👕</span><span>Top</span>
+      </button>
+      <button class="cat-btn" type="button" data-cat="bottom">
+        <span class="cat-emoji">👖</span><span>Bottom</span>
+      </button>
+      <button class="cat-btn" type="button" data-cat="dress">
+        <span class="cat-emoji">👗</span><span>Dress</span>
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="card" id="suggestCard" style="display:none;">
@@ -372,15 +612,31 @@
   <p class="tip" id="suggestTip">Try wearing one of these with what's in your photo!</p>
 </div>
 
+<div class="card" id="outfitsCard">
+  <h2 class="section-title">✨ Outfits that go together</h2>
+  <div class="outfit-stage" id="outfitStage">
+    <div class="outfit-frame empty-state" id="outfitFrame">
+      <span class="big-emoji">🎀</span>
+      <div>Save at least one top and one bottom (or a dress) to your closet, then I'll show you outfits that match!</div>
+    </div>
+  </div>
+  <div class="outfit-controls" id="outfitControls" style="display:none;">
+    <button class="outfit-nav" id="outfitPrev" type="button" aria-label="Previous">‹</button>
+    <div class="outfit-dots" id="outfitDots"></div>
+    <button class="outfit-nav" id="outfitNext" type="button" aria-label="Next">›</button>
+  </div>
+  <p class="tip" id="outfitTip" style="display:none;">Swipe left or right, or use the arrows. Each combo spins in! ✨</p>
+</div>
+
 <div class="card" id="closetCard">
   <h2 class="section-title">👗 My closet</h2>
-  <div class="swatches" id="closetSwatches">
+  <div class="closet-grid" id="closetGrid">
     <div class="empty">
       <span class="big-emoji">👚</span>
       Save outfit colors here so I can match them later!
     </div>
   </div>
-  <p class="tip" id="closetTip" style="display:none;">Tap a color to remove it from your closet.</p>
+  <p class="tip" id="closetTip" style="display:none;">Tap the × on a piece to remove it.</p>
 </div>
 
 <footer>
@@ -399,21 +655,39 @@ const dominantSwatches = document.getElementById('dominantSwatches');
 const suggestSwatches = document.getElementById('suggestSwatches');
 const suggestCard = document.getElementById('suggestCard');
 const suggestTip = document.getElementById('suggestTip');
-const addClosetBtn = document.getElementById('addClosetBtn');
-const closetSwatches = document.getElementById('closetSwatches');
+const catPicker = document.getElementById('catPicker');
+const closetGrid = document.getElementById('closetGrid');
 const closetTip = document.getElementById('closetTip');
+const outfitFrame = document.getElementById('outfitFrame');
+const outfitControls = document.getElementById('outfitControls');
+const outfitDotsEl = document.getElementById('outfitDots');
+const outfitPrev = document.getElementById('outfitPrev');
+const outfitNext = document.getElementById('outfitNext');
+const outfitStage = document.getElementById('outfitStage');
+const outfitTip = document.getElementById('outfitTip');
 
-// === Closet storage (lives only in this iPad's Safari, free forever) ===
-const CLOSET_KEY = 'missMatcherCloset.v1';
+// === Closet storage v2 (now stores photo thumbnails + category) ===
+const CLOSET_KEY = 'missMatcherCloset.v2';
+const OLD_CLOSET_KEY = 'missMatcherCloset.v1';
 let closet = loadCloset();
 let currentDominant = null;
+let currentPhotoDataUrl = null;
+let outfitCombos = [];
+let outfitIndex = 0;
 
 function loadCloset() {
   try {
     const raw = localStorage.getItem(CLOSET_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+    // Migration: per user choice "B (start fresh)", we don't keep old uncategorized items.
+    // We just clear the old key so localStorage is clean.
+    if (localStorage.getItem(OLD_CLOSET_KEY)) {
+      localStorage.removeItem(OLD_CLOSET_KEY);
+    }
+    return [];
   } catch {
     return [];
   }
@@ -421,10 +695,14 @@ function loadCloset() {
 
 function saveCloset() {
   try { localStorage.setItem(CLOSET_KEY, JSON.stringify(closet)); }
-  catch (e) { console.warn('Could not save closet:', e); }
+  catch (e) {
+    console.warn('Could not save closet:', e);
+    alert("Your iPad's storage is getting full. Try removing some closet items.");
+  }
 }
 
 renderCloset();
+renderOutfits();
 
 // Hold the loaded image data so taps can re-analyze without redrawing.
 let imageCanvas = null;
@@ -443,6 +721,7 @@ fileInput.addEventListener('change', (e) => {
     pickMarker.style.display = 'none';
     pickHint.classList.remove('fade');
     pickHint.style.display = 'block';
+    currentPhotoDataUrl = null; // reset thumbnail cache for the new photo
     preview.onload = () => {
       prepareImage(preview);
       // Default first analysis: focus on the center (where the outfit usually is)
@@ -493,79 +772,272 @@ function prepareImage(img) {
 // Analyze around a normalized (0..1) focus point.
 function analyzeAt(fx, fy) {
   if (!imageData) return;
-  // Pick just ONE main color — the dominant color of the spot you tapped.
   const dominant = extractDominantColors(imageData, imageCanvas.width, imageCanvas.height, fx, fy, 1);
   renderSwatches(dominantSwatches, dominant);
   currentDominant = dominant[0] || null;
-  updateAddButton();
+  showCategoryPicker(!!currentDominant);
   const suggestions = suggestColors(dominant);
   renderSwatches(suggestSwatches, suggestions, true);
   suggestCard.style.display = 'block';
-  tip.textContent = '👆 Tap a different spot to try another color!';
+  tip.textContent = '👆 Tap a different spot, or save this to your closet below!';
 }
 
-// "Save to my closet" button
-addClosetBtn.addEventListener('click', () => {
+function showCategoryPicker(show) {
+  catPicker.classList.toggle('show', show);
+}
+
+// Build a 480×480 cover-cropped JPEG thumbnail of the current photo.
+// Center-crop keeps the subject (clothing) in frame at high quality.
+function buildThumbnail(img) {
+  const TARGET = 480;
+  const sourceSize = Math.min(img.naturalWidth, img.naturalHeight);
+  const sx = (img.naturalWidth - sourceSize) / 2;
+  const sy = (img.naturalHeight - sourceSize) / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = TARGET;
+  canvas.height = TARGET;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, sx, sy, sourceSize, sourceSize, 0, 0, TARGET, TARGET);
+  return canvas.toDataURL('image/jpeg', 0.78);
+}
+
+// Wire up the category buttons
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.addEventListener('click', () => saveToCloset(btn.dataset.cat));
+});
+
+function saveToCloset(category) {
   if (!currentDominant) return;
+  // Always store a fresh thumbnail — built lazily so we don't burn memory until save
+  const photo = currentPhotoDataUrl || (preview.src ? buildThumbnail(preview) : null);
+  currentPhotoDataUrl = photo;
   const usedNames = new Set(closet.map(c => c.name));
   const name = nameColor(currentDominant.r, currentDominant.g, currentDominant.b, usedNames);
-  closet.push({ r: currentDominant.r, g: currentDominant.g, b: currentDominant.b, name });
+  closet.push({
+    id: 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    category,                          // 'top' | 'bottom' | 'dress'
+    r: currentDominant.r, g: currentDominant.g, b: currentDominant.b,
+    name,
+    photo,                             // 480x480 JPEG data URL
+    createdAt: Date.now(),
+  });
   saveCloset();
   renderCloset();
-  updateAddButton();
-  // Re-suggest now that the closet has more in it
+  renderOutfits();
+  // Update suggestions to reflect the new closet
   if (currentDominant) {
     const suggestions = suggestColors([currentDominant]);
     renderSwatches(suggestSwatches, suggestions, true);
   }
-});
-
-function updateAddButton() {
-  if (!currentDominant) {
-    addClosetBtn.style.display = 'none';
-    return;
-  }
-  addClosetBtn.style.display = 'flex';
-  // If this color (or one very close) is already in the closet, mark it saved
-  const exists = closet.some(c =>
-    Math.abs(c.r - currentDominant.r) + Math.abs(c.g - currentDominant.g) + Math.abs(c.b - currentDominant.b) < 30
-  );
-  if (exists) {
-    addClosetBtn.classList.add('saved');
-    addClosetBtn.innerHTML = '<span>✓</span><span>Saved to your closet</span>';
-  } else {
-    addClosetBtn.classList.remove('saved');
-    addClosetBtn.innerHTML = '<span>➕</span><span>Save to my closet</span>';
-  }
+  // Quick visual confirmation
+  flashCategoryButton(category);
 }
+
+function flashCategoryButton(category) {
+  const btn = document.querySelector(`.cat-btn[data-cat="${category}"]`);
+  if (!btn) return;
+  const original = btn.innerHTML;
+  btn.innerHTML = '<span class="cat-emoji">✓</span><span>Saved!</span>';
+  btn.style.background = 'linear-gradient(135deg, var(--pink-soft), var(--purple-soft))';
+  setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 1200);
+}
+
+const CAT_EMOJI = { top: '👕', bottom: '👖', dress: '👗' };
 
 function renderCloset() {
   if (!closet.length) {
-    closetSwatches.innerHTML = '<div class="empty"><span class="big-emoji">👚</span>Save outfit colors here so I can match them later!</div>';
+    closetGrid.innerHTML = '<div class="empty"><span class="big-emoji">👚</span>Save outfit colors here so I can match them later!</div>';
     closetTip.style.display = 'none';
     return;
   }
-  closetSwatches.innerHTML = '';
+  closetGrid.innerHTML = '';
   closetTip.style.display = 'block';
-  closet.forEach((c, idx) => {
-    const hex = rgbToHex(c.r, c.g, c.b);
+  closet.forEach((item) => {
     const div = document.createElement('div');
-    div.className = 'swatch closet-swatch';
-    div.style.background = hex;
-    div.innerHTML = `<div class="remove">×</div><div class="label">${c.name}</div>`;
-    div.addEventListener('click', () => {
-      closet.splice(idx, 1);
-      saveCloset();
-      renderCloset();
-      updateAddButton();
-      if (currentDominant) {
-        const suggestions = suggestColors([currentDominant]);
-        renderSwatches(suggestSwatches, suggestions, true);
+    div.className = 'closet-item';
+    if (!item.photo) {
+      div.style.background = rgbToHex(item.r, item.g, item.b);
+    }
+    const photoTag = item.photo ? `<img src="${item.photo}" alt="${item.name}">` : '';
+    div.innerHTML = `
+      ${photoTag}
+      <div class="cat-badge">${CAT_EMOJI[item.category] || '👚'}</div>
+      <div class="remove" data-id="${item.id}">×</div>
+      <div class="item-label">${item.name}</div>
+    `;
+    div.querySelector('.remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = closet.findIndex(c => c.id === item.id);
+      if (idx >= 0) {
+        closet.splice(idx, 1);
+        saveCloset();
+        renderCloset();
+        renderOutfits();
+        if (currentDominant) {
+          const suggestions = suggestColors([currentDominant]);
+          renderSwatches(suggestSwatches, suggestions, true);
+        }
       }
     });
-    closetSwatches.appendChild(div);
+    closetGrid.appendChild(div);
   });
 }
+
+// =====================================================================
+//   OUTFIT BUILDER — pair every top with every bottom by color match,
+//   plus standalone dresses. Sort by score, show in a swipeable carousel
+//   with a satisfying spin animation between combos.
+// =====================================================================
+
+function buildOutfitCombos() {
+  const tops = closet.filter(c => c.category === 'top');
+  const bottoms = closet.filter(c => c.category === 'bottom');
+  const dresses = closet.filter(c => c.category === 'dress');
+  const combos = [];
+
+  for (const top of tops) {
+    for (const bottom of bottoms) {
+      combos.push({
+        kind: 'pair', top, bottom,
+        score: pairScore(top, bottom),
+      });
+    }
+  }
+  for (const dress of dresses) {
+    combos.push({ kind: 'dress', dress, score: 9.5 });
+  }
+
+  return combos.sort((a, b) => b.score - a.score).slice(0, 10);
+}
+
+// Score how well two colors look together as an outfit, 0-10.
+// Built on the same fashion rules used for suggestions.
+function pairScore(a, b) {
+  const ah = rgbToHsl(a.r, a.g, a.b);
+  const bh = rgbToHsl(b.r, b.g, b.b);
+  let dh = Math.abs(ah.h - bh.h); if (dh > 180) dh = 360 - dh;
+  const aN = ah.s < 0.18, bN = bh.s < 0.18;
+  let score = 5;
+  // Two neutrals: classic, always works
+  if (aN && bN) score = Math.abs(ah.l - bh.l) > 0.25 ? 9 : 7.5; // contrast helps
+  // One neutral + one color: foundation outfit, strong
+  else if (aN || bN) score = 8.5;
+  // Same-family different lightness (tonal): elegant
+  else if (dh < 30 && Math.abs(ah.l - bh.l) > 0.2) score = 8;
+  // Analogous (next-door hues): effortless
+  else if (dh < 60) score = 7;
+  // Muted complementary: bold but works
+  else if (dh > 140 && (ah.s < 0.7 || bh.s < 0.7)) score = 7.5;
+  // Bright clashing: bad
+  else if (dh > 60 && ah.s > 0.7 && bh.s > 0.7) score = 4;
+  return score;
+}
+
+function renderOutfits() {
+  outfitCombos = buildOutfitCombos();
+  outfitIndex = 0;
+  if (!outfitCombos.length) {
+    outfitFrame.classList.add('empty-state');
+    outfitFrame.innerHTML = `
+      <span class="big-emoji">🎀</span>
+      <div>Save at least one top and one bottom (or a dress) to your closet, then I'll show you outfits that match!</div>
+    `;
+    outfitControls.style.display = 'none';
+    outfitTip.style.display = 'none';
+    return;
+  }
+  outfitFrame.classList.remove('empty-state');
+  outfitControls.style.display = 'flex';
+  outfitTip.style.display = 'block';
+  paintOutfit();
+  paintDots();
+}
+
+function paintOutfit() {
+  const combo = outfitCombos[outfitIndex];
+  if (!combo) return;
+  const score = `${Math.round(combo.score * 10)}/100 match`;
+  if (combo.kind === 'pair') {
+    outfitFrame.innerHTML = `
+      <div class="outfit-pair">
+        <div class="outfit-piece">
+          ${combo.top.photo ? `<img src="${combo.top.photo}">` : `<div style="background:${rgbToHex(combo.top.r,combo.top.g,combo.top.b)};width:100%;height:100%;"></div>`}
+          <div class="piece-label">👕 ${combo.top.name}</div>
+        </div>
+        <div class="outfit-piece">
+          ${combo.bottom.photo ? `<img src="${combo.bottom.photo}">` : `<div style="background:${rgbToHex(combo.bottom.r,combo.bottom.g,combo.bottom.b)};width:100%;height:100%;"></div>`}
+          <div class="piece-label">👖 ${combo.bottom.name}</div>
+        </div>
+      </div>
+      <div class="outfit-meta"><span class="outfit-score">✨ ${score}</span></div>
+    `;
+  } else {
+    outfitFrame.innerHTML = `
+      <div class="outfit-pair dress">
+        <div class="outfit-piece">
+          ${combo.dress.photo ? `<img src="${combo.dress.photo}">` : `<div style="background:${rgbToHex(combo.dress.r,combo.dress.g,combo.dress.b)};width:100%;height:100%;"></div>`}
+          <div class="piece-label">👗 ${combo.dress.name}</div>
+        </div>
+      </div>
+      <div class="outfit-meta"><span class="outfit-score">✨ ${score}</span></div>
+    `;
+  }
+  outfitPrev.disabled = outfitIndex === 0;
+  outfitNext.disabled = outfitIndex >= outfitCombos.length - 1;
+}
+
+function paintDots() {
+  outfitDotsEl.innerHTML = '';
+  if (outfitCombos.length <= 1) return;
+  const max = Math.min(outfitCombos.length, 10);
+  for (let i = 0; i < max; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'outfit-dot' + (i === outfitIndex ? ' active' : '');
+    outfitDotsEl.appendChild(dot);
+  }
+}
+
+// Spin between combos. Half the spin, swap the contents, finish the spin.
+function showOutfit(newIndex) {
+  if (newIndex < 0 || newIndex >= outfitCombos.length || newIndex === outfitIndex) return;
+  outfitFrame.classList.add('spinning');
+  setTimeout(() => {
+    outfitIndex = newIndex;
+    paintOutfit();
+    paintDots();
+    outfitFrame.classList.remove('spinning');
+  }, 280);
+}
+
+outfitPrev.addEventListener('click', () => showOutfit(outfitIndex - 1));
+outfitNext.addEventListener('click', () => showOutfit(outfitIndex + 1));
+
+// Swipe gestures (touch + mouse drag)
+let touchStartX = null;
+outfitStage.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+}, { passive: true });
+outfitStage.addEventListener('touchend', (e) => {
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) {
+    if (dx < 0) showOutfit(outfitIndex + 1);
+    else        showOutfit(outfitIndex - 1);
+  }
+  touchStartX = null;
+});
+let mouseStartX = null;
+outfitStage.addEventListener('mousedown', (e) => { mouseStartX = e.clientX; });
+outfitStage.addEventListener('mouseup', (e) => {
+  if (mouseStartX === null) return;
+  const dx = e.clientX - mouseStartX;
+  if (Math.abs(dx) > 50) {
+    if (dx < 0) showOutfit(outfitIndex + 1);
+    else        showOutfit(outfitIndex - 1);
+  }
+  mouseStartX = null;
+});
 
 // Tiny eyedropper: look at a small circle exactly under the tap, and HEAVILY prefer
 // colorful pixels over gray ones so floor/shadow neutrals can't sneak in.
