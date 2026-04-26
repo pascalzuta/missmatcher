@@ -258,6 +258,70 @@
     color: #8a6fb3;
   }
 
+  .add-closet-btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 14px;
+    border: 2px dashed var(--purple);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--purple);
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    transition: transform 0.15s, background 0.2s;
+  }
+  .add-closet-btn:active {
+    transform: scale(0.97);
+    background: rgba(168, 85, 247, 0.15);
+  }
+  .add-closet-btn.saved {
+    border-style: solid;
+    background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(96,165,250,0.2));
+    color: var(--purple);
+  }
+
+  .closet-swatch {
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .closet-swatch:active { transform: scale(0.95); }
+  .closet-swatch .remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    line-height: 1;
+  }
+
+  .closet-suggest-mark {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--purple);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
   .heart {
     display: inline-block;
     animation: beat 1.4s ease-in-out infinite;
@@ -297,12 +361,26 @@
   <div class="swatches single" id="dominantSwatches">
     <div class="empty"><span class="big-emoji">👗</span>Upload a photo to see!</div>
   </div>
+  <button class="add-closet-btn" id="addClosetBtn" type="button" style="display:none;">
+    <span>➕</span> <span>Save to my closet</span>
+  </button>
 </div>
 
 <div class="card" id="suggestCard" style="display:none;">
   <h2 class="section-title">💖 Colors that would look great</h2>
   <div class="swatches" id="suggestSwatches"></div>
-  <p class="tip">Try wearing one of these with what's in your photo!</p>
+  <p class="tip" id="suggestTip">Try wearing one of these with what's in your photo!</p>
+</div>
+
+<div class="card" id="closetCard">
+  <h2 class="section-title">👗 My closet</h2>
+  <div class="swatches" id="closetSwatches">
+    <div class="empty">
+      <span class="big-emoji">👚</span>
+      Save outfit colors here so I can match them later!
+    </div>
+  </div>
+  <p class="tip" id="closetTip" style="display:none;">Tap a color to remove it from your closet.</p>
 </div>
 
 <footer>
@@ -320,6 +398,33 @@ const tip = document.getElementById('tip');
 const dominantSwatches = document.getElementById('dominantSwatches');
 const suggestSwatches = document.getElementById('suggestSwatches');
 const suggestCard = document.getElementById('suggestCard');
+const suggestTip = document.getElementById('suggestTip');
+const addClosetBtn = document.getElementById('addClosetBtn');
+const closetSwatches = document.getElementById('closetSwatches');
+const closetTip = document.getElementById('closetTip');
+
+// === Closet storage (lives only in this iPad's Safari, free forever) ===
+const CLOSET_KEY = 'missMatcherCloset.v1';
+let closet = loadCloset();
+let currentDominant = null;
+
+function loadCloset() {
+  try {
+    const raw = localStorage.getItem(CLOSET_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCloset() {
+  try { localStorage.setItem(CLOSET_KEY, JSON.stringify(closet)); }
+  catch (e) { console.warn('Could not save closet:', e); }
+}
+
+renderCloset();
 
 // Hold the loaded image data so taps can re-analyze without redrawing.
 let imageCanvas = null;
@@ -391,10 +496,75 @@ function analyzeAt(fx, fy) {
   // Pick just ONE main color — the dominant color of the spot you tapped.
   const dominant = extractDominantColors(imageData, imageCanvas.width, imageCanvas.height, fx, fy, 1);
   renderSwatches(dominantSwatches, dominant);
+  currentDominant = dominant[0] || null;
+  updateAddButton();
   const suggestions = suggestColors(dominant);
-  renderSwatches(suggestSwatches, suggestions);
+  renderSwatches(suggestSwatches, suggestions, true);
   suggestCard.style.display = 'block';
   tip.textContent = '👆 Tap a different spot to try another color!';
+}
+
+// "Save to my closet" button
+addClosetBtn.addEventListener('click', () => {
+  if (!currentDominant) return;
+  const usedNames = new Set(closet.map(c => c.name));
+  const name = nameColor(currentDominant.r, currentDominant.g, currentDominant.b, usedNames);
+  closet.push({ r: currentDominant.r, g: currentDominant.g, b: currentDominant.b, name });
+  saveCloset();
+  renderCloset();
+  updateAddButton();
+  // Re-suggest now that the closet has more in it
+  if (currentDominant) {
+    const suggestions = suggestColors([currentDominant]);
+    renderSwatches(suggestSwatches, suggestions, true);
+  }
+});
+
+function updateAddButton() {
+  if (!currentDominant) {
+    addClosetBtn.style.display = 'none';
+    return;
+  }
+  addClosetBtn.style.display = 'flex';
+  // If this color (or one very close) is already in the closet, mark it saved
+  const exists = closet.some(c =>
+    Math.abs(c.r - currentDominant.r) + Math.abs(c.g - currentDominant.g) + Math.abs(c.b - currentDominant.b) < 30
+  );
+  if (exists) {
+    addClosetBtn.classList.add('saved');
+    addClosetBtn.innerHTML = '<span>✓</span><span>Saved to your closet</span>';
+  } else {
+    addClosetBtn.classList.remove('saved');
+    addClosetBtn.innerHTML = '<span>➕</span><span>Save to my closet</span>';
+  }
+}
+
+function renderCloset() {
+  if (!closet.length) {
+    closetSwatches.innerHTML = '<div class="empty"><span class="big-emoji">👚</span>Save outfit colors here so I can match them later!</div>';
+    closetTip.style.display = 'none';
+    return;
+  }
+  closetSwatches.innerHTML = '';
+  closetTip.style.display = 'block';
+  closet.forEach((c, idx) => {
+    const hex = rgbToHex(c.r, c.g, c.b);
+    const div = document.createElement('div');
+    div.className = 'swatch closet-swatch';
+    div.style.background = hex;
+    div.innerHTML = `<div class="remove">×</div><div class="label">${c.name}</div>`;
+    div.addEventListener('click', () => {
+      closet.splice(idx, 1);
+      saveCloset();
+      renderCloset();
+      updateAddButton();
+      if (currentDominant) {
+        const suggestions = suggestColors([currentDominant]);
+        renderSwatches(suggestSwatches, suggestions, true);
+      }
+    });
+    closetSwatches.appendChild(div);
+  });
 }
 
 // Tiny eyedropper: look at a small circle exactly under the tap, and HEAVILY prefer
@@ -494,70 +664,59 @@ const WARDROBE = [
 ];
 
 // Pick six wearable closet colors that would look great with the outfit's anchor color.
-// Idea: don't blindly follow the color wheel — closets have neutrals. Always grab a light
-// neutral, a dark neutral, a same-family piece, a complementary accent, and two wildcards.
+// If the user has saved 3+ items in their personal closet, prefer those — only suggest
+// things they actually own. Otherwise fall back to the universal WARDROBE list.
 function suggestColors(dominant) {
   if (!dominant.length) return [];
   const anchor = dominant[0];
   const aHsl = rgbToHsl(anchor.r, anchor.g, anchor.b);
   const aWarm = isWarmHue(aHsl.h);
-  // Don't suggest the same color you're already wearing
   const tooClose = (c) => Math.abs(c.r - anchor.r) + Math.abs(c.g - anchor.g) + Math.abs(c.b - anchor.b) < 60;
 
-  // Score each wardrobe color against the anchor for "would this look good together?"
-  const scored = WARDROBE.filter(c => !tooClose(c)).map(c => {
+  // Score-and-rank a candidate list against the anchor
+  const scoreList = (list) => list.filter(c => !tooClose(c)).map(c => {
     const h = rgbToHsl(c.r, c.g, c.b);
     let dh = Math.abs(aHsl.h - h.h); if (dh > 180) dh = 360 - dh;
     const isNeutral = h.s < 0.18;
     let score = 0;
-    // Neutrals are universal closet wins
     if (isNeutral) score += 60;
-    // Pieces in the same color family with different lightness create great tonal outfits
     if (!isNeutral && dh < 35 && Math.abs(aHsl.l - h.l) > 0.15) score += 45;
-    // Classic complementary accents (muted, not neon)
     if (!isNeutral && dh > 140 && h.s < 0.65) score += 35;
-    // Analogous (next-door hues) look effortless together
     if (!isNeutral && dh >= 35 && dh < 80) score += 25;
-    // Cross-temperature neutral pop: warm outfit + cool neutral, or vice versa
-    if (isNeutral && ((aWarm && c.t === 'cool') || (!aWarm && c.t === 'warm'))) score += 10;
-    return { ...c, score, isNeutral, role: c.role };
+    const cWarm = isWarmHue(h.s < 0.18 ? (c.t === 'warm' ? 30 : 240) : h.h);
+    if (isNeutral && (aWarm !== cWarm)) score += 10;
+    return { ...c, score, isNeutral };
   }).sort((a, b) => b.score - a.score);
 
-  // Build the suggestion set with closet-balance rules
-  const picks = [];
-  const has = { light: 0, dark: 0, neutral: 0, accent: 0 };
-  for (const c of scored) {
+  // 1) Prefer the user's personal closet if it has at least 3 items
+  if (closet.length >= 3) {
+    const personal = scoreList(closet).slice(0, 6).map(c => ({
+      r: c.r, g: c.g, b: c.b, fromCloset: true, name: c.name
+    }));
+    if (personal.length >= 3) return personal;
+  }
+
+  // 2) Otherwise, mix: any closet items first, then top up with universal WARDROBE
+  const fromCloset = scoreList(closet).slice(0, 6).map(c => ({
+    r: c.r, g: c.g, b: c.b, fromCloset: true, name: c.name
+  }));
+  const universal = scoreList(WARDROBE);
+  const picks = [...fromCloset];
+  const has = { light: 0, dark: 0, neutral: 0 };
+  for (const c of universal) {
     if (picks.length >= 6) break;
+    // Avoid duplicating a closet item we already added
+    if (picks.some(p => Math.abs(p.r-c.r)+Math.abs(p.g-c.g)+Math.abs(p.b-c.b) < 40)) continue;
     if (c.isNeutral) {
-      // Cap at 3 neutrals — leave room for color
       if (has.neutral >= 3) continue;
-      // Don't pile on the same lightness role
       if (c.role === 'light' && has.light >= 2) continue;
       if (c.role === 'dark' && has.dark >= 2) continue;
       has.neutral++;
       if (c.role === 'light') has.light++;
       if (c.role === 'dark') has.dark++;
-    } else {
-      has.accent++;
     }
     picks.push({ r: c.r, g: c.g, b: c.b });
   }
-  // Make sure at least one bright light neutral and one dark neutral made it in,
-  // since "white-ish" and "black/navy-ish" are wardrobe foundations.
-  function ensureRole(role) {
-    if (picks.some(p => {
-      const w = WARDROBE.find(w => w.r === p.r && w.g === p.g && w.b === p.b);
-      const ph = rgbToHsl(p.r, p.g, p.b);
-      return w?.role === role && ph.s < 0.18;
-    })) return;
-    const filler = scored.find(c => c.role === role && c.isNeutral);
-    if (filler) {
-      if (picks.length >= 6) picks.pop();
-      picks.push({ r: filler.r, g: filler.g, b: filler.b });
-    }
-  }
-  ensureRole('light');
-  ensureRole('dark');
   return picks.slice(0, 6);
 }
 
@@ -566,7 +725,7 @@ function isWarmHue(h) {
   return h < 70 || h >= 330;
 }
 
-function renderSwatches(container, colors) {
+function renderSwatches(container, colors, isSuggestions) {
   if (!colors.length) {
     container.innerHTML = '<div class="empty">Hmm, no colors found. Try another photo!</div>';
     return;
@@ -575,13 +734,28 @@ function renderSwatches(container, colors) {
   const usedNames = new Set();
   for (const c of colors) {
     const hex = rgbToHex(c.r, c.g, c.b);
-    const name = nameColor(c.r, c.g, c.b, usedNames);
+    // If the suggestion came from the user's closet, use the name they saved.
+    // Otherwise look it up.
+    const name = c.name || nameColor(c.r, c.g, c.b, usedNames);
     usedNames.add(name);
     const div = document.createElement('div');
     div.className = 'swatch';
     div.style.background = hex;
-    div.innerHTML = `<div class="label">${name}</div>`;
+    let inner = `<div class="label">${name}</div>`;
+    if (isSuggestions && c.fromCloset) {
+      inner = `<div class="closet-suggest-mark">👗 yours</div>` + inner;
+    }
+    div.innerHTML = inner;
     container.appendChild(div);
+  }
+  // Update the suggest tip when suggestions are shown
+  if (isSuggestions && suggestTip) {
+    const fromClosetCount = colors.filter(c => c.fromCloset).length;
+    if (fromClosetCount > 0) {
+      suggestTip.textContent = `✨ ${fromClosetCount} of these are already in your closet — try wearing them together!`;
+    } else {
+      suggestTip.textContent = 'Save some of your outfits to your closet for personal matches!';
+    }
   }
 }
 
