@@ -688,36 +688,55 @@ function suggestColors(dominant) {
     return { ...c, score, isNeutral };
   }).sort((a, b) => b.score - a.score);
 
-  // 1) Prefer the user's personal closet if it has at least 3 items
-  if (closet.length >= 3) {
-    const personal = scoreList(closet).slice(0, 6).map(c => ({
-      r: c.r, g: c.g, b: c.b, fromCloset: true, name: c.name
-    }));
-    if (personal.length >= 3) return personal;
-  }
-
-  // 2) Otherwise, mix: any closet items first, then top up with universal WARDROBE
-  const fromCloset = scoreList(closet).slice(0, 6).map(c => ({
+  // Always mix the two: stuff she already owns + fresh ideas she might want to try.
+  // Aim for ~3 closet items and ~3 new ideas, capped at 6 total.
+  const TOTAL = 6;
+  const CLOSET_TARGET = Math.min(3, closet.length); // up to 3 from closet
+  const fromCloset = scoreList(closet).slice(0, CLOSET_TARGET).map(c => ({
     r: c.r, g: c.g, b: c.b, fromCloset: true, name: c.name
   }));
-  const universal = scoreList(WARDROBE);
-  const picks = [...fromCloset];
+
+  // Pick "new ideas" from the universal wardrobe — colors NOT already in her closet
+  const isAlreadyInCloset = (c) => closet.some(item =>
+    Math.abs(item.r - c.r) + Math.abs(item.g - c.g) + Math.abs(item.b - c.b) < 40
+  );
+  const isAlreadyPicked = (c, picks) => picks.some(p =>
+    Math.abs(p.r - c.r) + Math.abs(p.g - c.g) + Math.abs(p.b - c.b) < 40
+  );
+  const universal = scoreList(WARDROBE).filter(c => !isAlreadyInCloset(c));
+  const newIdeas = [];
   const has = { light: 0, dark: 0, neutral: 0 };
   for (const c of universal) {
-    if (picks.length >= 6) break;
-    // Avoid duplicating a closet item we already added
-    if (picks.some(p => Math.abs(p.r-c.r)+Math.abs(p.g-c.g)+Math.abs(p.b-c.b) < 40)) continue;
+    if (newIdeas.length >= TOTAL - fromCloset.length) break;
+    if (isAlreadyPicked(c, [...fromCloset, ...newIdeas])) continue;
     if (c.isNeutral) {
-      if (has.neutral >= 3) continue;
-      if (c.role === 'light' && has.light >= 2) continue;
-      if (c.role === 'dark' && has.dark >= 2) continue;
+      if (has.neutral >= 2) continue;
+      if (c.role === 'light' && has.light >= 1) continue;
+      if (c.role === 'dark' && has.dark >= 1) continue;
       has.neutral++;
       if (c.role === 'light') has.light++;
       if (c.role === 'dark') has.dark++;
     }
-    picks.push({ r: c.r, g: c.g, b: c.b });
+    newIdeas.push({ r: c.r, g: c.g, b: c.b, fromCloset: false });
   }
-  return picks.slice(0, 6);
+
+  // If the closet had fewer than 3 picks, top up with more new ideas to reach 6
+  while (newIdeas.length + fromCloset.length < TOTAL) {
+    const next = universal.find(c =>
+      !isAlreadyPicked(c, [...fromCloset, ...newIdeas])
+    );
+    if (!next) break;
+    newIdeas.push({ r: next.r, g: next.g, b: next.b, fromCloset: false });
+  }
+
+  // Interleave so closet picks and new ideas alternate visually
+  const picks = [];
+  for (let i = 0; i < TOTAL; i++) {
+    if (i % 2 === 0 && fromCloset.length) picks.push(fromCloset.shift());
+    else if (newIdeas.length) picks.push(newIdeas.shift());
+    else if (fromCloset.length) picks.push(fromCloset.shift());
+  }
+  return picks.slice(0, TOTAL);
 }
 
 function isWarmHue(h) {
@@ -751,8 +770,11 @@ function renderSwatches(container, colors, isSuggestions) {
   // Update the suggest tip when suggestions are shown
   if (isSuggestions && suggestTip) {
     const fromClosetCount = colors.filter(c => c.fromCloset).length;
-    if (fromClosetCount > 0) {
-      suggestTip.textContent = `✨ ${fromClosetCount} of these are already in your closet — try wearing them together!`;
+    const newIdeas = colors.length - fromClosetCount;
+    if (fromClosetCount > 0 && newIdeas > 0) {
+      suggestTip.textContent = `👗 ${fromClosetCount} from your closet, plus ${newIdeas} new ideas to try!`;
+    } else if (fromClosetCount > 0) {
+      suggestTip.textContent = `👗 All ${fromClosetCount} are already in your closet — try wearing them together!`;
     } else {
       suggestTip.textContent = 'Save some of your outfits to your closet for personal matches!';
     }
